@@ -10,6 +10,10 @@ Clone the repository and open it in any C++ IDE with CMake and vcpkg support.
 
 Click "Run" button in your IDE.
 
+## Attributions
+
+Art: https://www.behance.net/garnenka
+
 ## License
 
 Code is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE Version 3 only.
