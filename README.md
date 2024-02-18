@@ -1,0 +1,17 @@
+# Pong
+
+Self-explanatory, I guess.
+
+## Setup
+
+Clone the repository and open it in any C++ IDE with CMake and vcpkg support.
+
+## Run
+
+Click "Run" button in your IDE.
+
+## License
+
+Code is distributed under the GNU AFFERO GENERAL PUBLIC LICENSE Version 3 only.
+
+<img src="./AGPLv3_Logo.svg" width="100"/>

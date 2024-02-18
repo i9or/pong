@@ -1,0 +1,17 @@
+{
+  "name": "pong",
+  "version-string": "1.0.0",
+  "builtin-baseline": "83972272512ce4ede5fc3b2ba98f6468b179f192",
+  "dependencies": [
+    {
+      "name": "sfml",
+      "version>=": "2.6.1"
+    }
+  ],
+  "overrides": [
+    {
+      "name": "sfml",
+      "version": "2.6.1"
+    }
+  ]
+}
