@@ -7,7 +7,7 @@
 //const auto BALL_RADIUS = 10.f;
 
 int main() {
-//  sf::RenderWindow window{sf::VideoMode{static_cast<unsigned int>(WIDTH), static_cast<unsigned int>(HEIGHT)}, "Pong"};
+//  sf::RenderWindow m_window{sf::VideoMode{static_cast<unsigned int>(WIDTH), static_cast<unsigned int>(HEIGHT)}, "Pong"};
 //
 //  sf::CircleShape ball{BALL_RADIUS};
 //  ball.setFillColor(sf::Color::White);
@@ -19,17 +19,17 @@ int main() {
 //  sf::Vector2f direction{1.f, 1.f};
 //  float velocity = 0.15f;
 //
-//      while (window.isOpen()) {
+//      while (m_window.isOpen()) {
 //    sf::Event event{};
 //
-//    while (window.pollEvent(event)) {
+//    while (m_window.pollEvent(event)) {
 //      if (event.type == sf::Event::Closed) {
-//        window.close();
+//        m_window.close();
 //      }
 //
 //      if (event.type == sf::Event::KeyPressed &&
 //          (event.key.code == sf::Keyboard::Escape)) {
-//        window.close();
+//        m_window.close();
 //      }
 //    }
 //
@@ -44,11 +44,11 @@ int main() {
 //    position = position + direction * velocity;
 //    ball.setPosition(position);
 //
-//    window.clear(sf::Color::White);
+//    m_window.clear(sf::Color::White);
 //
-//    window.draw(ball);
+//    m_window.draw(ball);
 //
-//    window.display();
+//    m_window.display();
 //  }
   Game game;
 

@@ -4,7 +4,7 @@ Self-explanatory, I guess.
 
 ## Setup
 
-Clone the repository and open it in any C++ IDE with CMake and vcpkg support.
+Clone the repository and open it in any C++ IDE with CMake and vcpkg support. I use CLion, by the way.
 
 ## Run
 
