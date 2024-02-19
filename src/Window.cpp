@@ -40,7 +40,8 @@ void Window::update() {
 }
 
 void Window::beginDraw() {
-  m_window.clear(sf::Color::White);
+//  m_window.clear(sf::Color::White);
+  m_window.clear(sf::Color(0x444444ff)); // TODO: remove before merge
 }
 
 void Window::endDraw() {
