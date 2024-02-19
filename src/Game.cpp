@@ -5,7 +5,10 @@
 Game::Game()
     : m_window("Pong", sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT)),
       m_ballVelocity({400.f, 400.f}) {
-  if (!m_ballTexture.loadFromFile("../assets/ball.png")) {
+  if (!m_ballTexture.loadFromFile("../assets/ball.png") ||
+      !m_paddleLeftTexture.loadFromFile("../assets/paddle_left.png") ||
+      !m_paddleRightTexture.loadFromFile("../assets/paddle_right.png") ||
+      !m_dividerTexture.loadFromFile("../assets/divider.png")) {
     std::cout << "Failed to load textures" << std::endl;
   }
 
@@ -18,6 +21,21 @@ Game::Game()
 
   m_ballSprite.setScale(0.25f, 0.25f);
   m_ballSprite.setPosition(100.f, 100.f);
+
+  m_paddleLeftSprite.setTexture(m_paddleLeftTexture);
+  m_paddleLeftSprite.setScale(0.25f, 0.25f);
+  m_paddleLeftSprite.setPosition(10.f, 200.f);
+
+  m_paddleRightSprite.setTexture(m_paddleRightTexture);
+  m_paddleRightSprite.setScale(0.25f, 0.25f);
+  m_paddleRightSprite.setPosition(WINDOW_WIDTH - 50.f, 500.f);
+
+  m_dividerSprite.setTexture(m_dividerTexture);
+  m_dividerSprite.setOrigin(static_cast<float>(m_dividerTexture.getSize().x) / 2.f,
+                            static_cast<float>(m_dividerTexture.getSize().y) / 2.f);
+  auto dividerRatio = WINDOW_HEIGHT / static_cast<float>(m_dividerTexture.getSize().y);
+  m_dividerSprite.setScale(dividerRatio, dividerRatio);
+  m_dividerSprite.setPosition(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f);
 }
 
 Game::~Game() = default;
@@ -52,6 +70,9 @@ void Game::moveBall() {
 void Game::render() {
   m_window.beginDraw();
 
+  m_window.draw(m_dividerSprite);
+  m_window.draw(m_paddleLeftSprite);
+  m_window.draw(m_paddleRightSprite);
   m_window.draw(m_ballSprite);
 
   m_window.endDraw();

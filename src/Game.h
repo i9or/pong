@@ -26,6 +26,15 @@ private:
   sf::Vector2f m_ballVelocity;
   sf::Vector2f getBallSpriteSize();
 
+  sf::Texture m_paddleLeftTexture;
+  sf::Sprite m_paddleLeftSprite;
+
+  sf::Texture m_paddleRightTexture;
+  sf::Sprite m_paddleRightSprite;
+
+  sf::Texture m_dividerTexture;
+  sf::Sprite m_dividerSprite;
+
   sf::Clock m_clock;
   sf::Time m_elapsed;
 
