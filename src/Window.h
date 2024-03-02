@@ -3,7 +3,6 @@
 #include <string>
 
 #include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
 
 class Window {
 public:
@@ -15,7 +14,8 @@ public:
   void endDraw();
   void update();
   bool isDone() const;
-  void draw(sf::Drawable &drawable);
+  void draw(const sf::Drawable &drawable);
+  void draw(const sf::Vertex *vertices, std::size_t vertexCount, sf::PrimitiveType type);
 
 private:
   void create(const std::string &title, const sf::Vector2u &size);

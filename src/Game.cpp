@@ -63,11 +63,11 @@ void Game::movePaddle(sf::Sprite &paddle, float direction) {
   const auto paddleHeight = getSpriteSize(paddle).y;
   const auto paddlePosition = paddle.getPosition();
 
-  if ((paddlePosition.y - paddleHeight / 2.f) <= 0.f) {
+  if (paddlePosition.y - paddleHeight / 2.f <= 0.f) {
     paddle.setPosition(paddlePosition.x, paddleHeight / 2.f);
   }
 
-  if ((paddlePosition.y + paddleHeight / 2.f) >= WINDOW_HEIGHT) {
+  if (paddlePosition.y + paddleHeight / 2.f >= WINDOW_HEIGHT) {
     paddle.setPosition(paddlePosition.x, WINDOW_HEIGHT - paddleHeight / 2.f);
   }
 }
@@ -76,12 +76,12 @@ void Game::moveBall() {
   const auto ballSize = getSpriteSize(m_ballSprite);
   const auto ballPosition = m_ballSprite.getPosition();
 
-  if (ballPosition.x > (WINDOW_WIDTH - ballSize.x / 2.f) ||
+  if (ballPosition.x > WINDOW_WIDTH - ballSize.x / 2.f ||
       ballPosition.x < ballSize.x / 2.f) {
     m_ballVelocity.x *= -1.f;
   }
 
-  if (ballPosition.y > (WINDOW_HEIGHT - ballSize.y / 2.f) ||
+  if (ballPosition.y > WINDOW_HEIGHT - ballSize.y / 2.f ||
       ballPosition.y < ballSize.y / 2.f) {
     m_ballVelocity.y *= -1.f;
   }
@@ -90,12 +90,64 @@ void Game::moveBall() {
 }
 
 void Game::render() {
+  // ================= DEBUG =================
+  float x1 = m_paddleLeftSprite.getPosition().x + getSpriteSize(m_paddleLeftSprite).x / 2.f;
+  float y1 = m_paddleLeftSprite.getPosition().y - getSpriteSize(m_paddleLeftSprite).y / 2.f;
+  float x2 = x1;
+  float y2 = m_paddleLeftSprite.getPosition().y + getSpriteSize(m_paddleLeftSprite).y / 2.f;
+
+  sf::Vertex leftPaddleSurface[] = {sf::Vertex(sf::Vector2f(x1, y1), sf::Color::Red),
+                                    sf::Vertex(sf::Vector2f(x2, y2), sf::Color::Red)};
+
+  float x3 = m_paddleRightSprite.getPosition().x - getSpriteSize(m_paddleRightSprite).x / 2.f;
+  float y3 = m_paddleRightSprite.getPosition().y - getSpriteSize(m_paddleRightSprite).y / 2.f;
+  float x4 = x3;
+  float y4 = m_paddleRightSprite.getPosition().y + getSpriteSize(m_paddleRightSprite).y / 2.f;
+
+  sf::Vertex rightPaddleSurface[] = {sf::Vertex(sf::Vector2f(x3, y3), sf::Color::Red),
+                                     sf::Vertex(sf::Vector2f(x4, y4), sf::Color::Red)};
+
+  sf::Vector2f v1{x1 - x2, y1 - y2};
+  float dV1 = sqrtf(v1.x * v1.x + v1.y * v1.y);
+  v1 /= dV1;
+  sf::Vector2f n1{-v1.y, v1.x};
+
+  sf::Vector2f v2{x4 - x3, y4 - y3};
+  float dV2 = sqrtf(v2.x * v2.x + v2.y * v2.y);
+  v2 /= dV2;
+  sf::Vector2f n2{-v2.y, v2.x};
+
+  auto lPos = m_paddleLeftSprite.getPosition();
+  lPos.x = x2;
+
+  sf::Vertex leftNormal[] = {sf::Vertex(lPos, sf::Color::Blue),
+                             sf::Vertex(lPos + n1 * 25.f, sf::Color::Blue)};
+
+  auto rPos = m_paddleRightSprite.getPosition();
+  rPos.x = x4;
+
+  sf::Vertex rightNormal[] = {sf::Vertex(rPos, sf::Color::Blue),
+                              sf::Vertex(rPos + n2 * 25.f, sf::Color::Blue)};
+
+  // ================= DEBUG =================
+
   m_window.beginDraw();
 
   m_window.draw(m_dividerSprite);
   m_window.draw(m_paddleLeftSprite);
   m_window.draw(m_paddleRightSprite);
   m_window.draw(m_ballSprite);
+
+  m_window.draw(leftPaddleSurface, 2, sf::Lines);
+  m_window.draw(rightPaddleSurface, 2, sf::Lines);
+
+  // ================= DEBUG =================
+  m_window.draw(leftNormal, 2, sf::Lines);
+  m_window.draw(rightNormal, 2, sf::Lines);
+  // ================= DEBUG =================
+
+  // m_window.draw(normalLeft);
+  // m_window.draw(normalRight);
 
   m_window.endDraw();
 }

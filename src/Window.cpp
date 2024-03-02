@@ -52,6 +52,10 @@ bool Window::isDone() const {
   return m_isDone;
 }
 
-void Window::draw(sf::Drawable &drawable) {
+void Window::draw(const sf::Drawable &drawable) {
   m_window.draw(drawable);
+}
+
+void Window::draw(const sf::Vertex *vertices, const std::size_t vertexCount, const sf::PrimitiveType type) {
+  m_window.draw(vertices, vertexCount, type);
 }
