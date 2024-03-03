@@ -16,6 +16,7 @@ public:
   bool isDone() const;
   void draw(const sf::Drawable &drawable);
   void draw(const sf::Vertex *vertices, std::size_t vertexCount, sf::PrimitiveType type);
+  void setTitle(const std::string &newTitle);
 
 private:
   void create(const std::string &title, const sf::Vector2u &size);

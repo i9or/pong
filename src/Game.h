@@ -5,6 +5,9 @@
 
 #include "Window.h"
 
+enum class Turn { Left,
+                  Right };
+
 class Game {
 public:
   Game();
@@ -51,8 +54,19 @@ private:
   sf::Sound m_leftPaddleSound;
   sf::Sound m_rightPaddleSound;
 
+  unsigned int m_leftPoints;
+  unsigned int m_rightPoints;
+  void displayPoints();
+  void leftScores();
+  void rightScores();
+
+  void resetGame(Turn turn);
+
+  static sf::Vector2f getClosestPointOnPaddle(const sf::Sprite &paddle, const sf::Vector2f &point);
+
   static constexpr float FRAME_TIME{1.0f / 60.f};
-  static constexpr float WINDOW_WIDTH{1024.f};
+  static constexpr float WINDOW_WIDTH{1366.f};
   static constexpr float WINDOW_HEIGHT{768.f};
   static constexpr float PADDLE_VELOCITY{15.f};
+  static constexpr float PADDLE_OFFSET{35.f};
 };

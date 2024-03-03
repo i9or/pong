@@ -4,9 +4,11 @@
 
 Game::Game()
     : m_window("Pong", sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT)),
-      m_ballVelocity({400.f, 400.f}),
+      m_ballVelocity({-400.f, 400.f}),
       m_paddleLeftMoveDirection(0.f),
-      m_paddleRightMoveDirection(0.f) {
+      m_paddleRightMoveDirection(0.f),
+      m_leftPoints(0),
+      m_rightPoints(0) {
   if (!m_ballTexture.loadFromFile("../assets/ball.png") ||
       !m_paddleLeftTexture.loadFromFile("../assets/paddle_left.png") ||
       !m_paddleRightTexture.loadFromFile("../assets/paddle_right.png") ||
@@ -22,7 +24,7 @@ Game::Game()
   m_ballSprite.setTexture(m_ballTexture);
   m_ballSprite.setOrigin(getSpriteOrigin(m_ballTexture));
   m_ballSprite.setScale(0.25f, 0.25f);
-  m_ballSprite.setPosition(100.f, 100.f);
+  m_ballSprite.setPosition(WINDOW_WIDTH - 100.f, 100.f);
 
   auto paddleHeight = WINDOW_HEIGHT / 7.f;
 
@@ -30,13 +32,13 @@ Game::Game()
   m_paddleLeftSprite.setOrigin(getSpriteOrigin(m_paddleLeftTexture));
   auto leftPaddScaleFactor = paddleHeight / static_cast<float>(m_paddleLeftTexture.getSize().y);
   m_paddleLeftSprite.setScale(leftPaddScaleFactor, leftPaddScaleFactor);
-  m_paddleLeftSprite.setPosition(getSpriteSize(m_paddleLeftSprite).x / 2.f + 10.f, WINDOW_HEIGHT / 2.f);
+  m_paddleLeftSprite.setPosition(getSpriteSize(m_paddleLeftSprite).x / 2.f + PADDLE_OFFSET, WINDOW_HEIGHT / 2.f);
 
   m_paddleRightSprite.setTexture(m_paddleRightTexture);
   m_paddleRightSprite.setOrigin(getSpriteOrigin(m_paddleRightTexture));
   auto rightPaddleScaleFactor = paddleHeight / static_cast<float>(m_paddleRightTexture.getSize().y);
   m_paddleRightSprite.setScale(rightPaddleScaleFactor, rightPaddleScaleFactor);
-  m_paddleRightSprite.setPosition(WINDOW_WIDTH - getSpriteSize(m_paddleRightSprite).x / 2.f - 10.f, WINDOW_HEIGHT / 2.f);
+  m_paddleRightSprite.setPosition(WINDOW_WIDTH - getSpriteSize(m_paddleRightSprite).x / 2.f - PADDLE_OFFSET, WINDOW_HEIGHT / 2.f);
 
   m_dividerSprite.setTexture(m_dividerTexture);
   m_dividerSprite.setOrigin(getSpriteOrigin(m_dividerTexture));
@@ -53,6 +55,8 @@ Game::Game()
   m_ballSound.setBuffer(m_ballWallSoundBuffer);
   m_leftPaddleSound.setBuffer(m_leftPaddleSoundBuffer);
   m_rightPaddleSound.setBuffer(m_rightPaddleSoundBuffer);
+
+  displayPoints();
 }
 
 void Game::update() {
@@ -83,65 +87,47 @@ void Game::movePaddle(sf::Sprite &paddle, float direction) {
 }
 
 void Game::moveBall() {
+  m_ballSprite.setPosition(m_ballSprite.getPosition() + m_ballVelocity * m_elapsed.asSeconds());
+
   const auto ballSize = getSpriteSize(m_ballSprite);
   const auto ballPosition = m_ballSprite.getPosition();
 
-  if (ballPosition.x > WINDOW_WIDTH - ballSize.x / 2.f ||
-      ballPosition.x < ballSize.x / 2.f) {
+  if (ballPosition.x > WINDOW_WIDTH + ballSize.x) {
+    // pointToTheLeft();
     m_ballVelocity.x *= -1.f;
+    m_ballSprite.setPosition(WINDOW_WIDTH + ballSize.x, ballPosition.y);
     m_ballSound.play();
   }
 
-  if (ballPosition.y > WINDOW_HEIGHT - ballSize.y / 2.f ||
-      ballPosition.y < ballSize.y / 2.f) {
+  if (ballPosition.x < -ballSize.x) {
+    // pointToTheRight();
+    m_ballVelocity.x *= -1.f;
+    m_ballSprite.setPosition(-ballSize.x, ballPosition.y);
+    m_ballSound.play();
+  }
+
+  if (ballPosition.y > WINDOW_HEIGHT - ballSize.y / 2.f) {
     m_ballVelocity.y *= -1.f;
+    m_ballSprite.setPosition(ballPosition.x, WINDOW_HEIGHT - ballSize.y / 2.f);
     m_ballSound.play();
   }
 
-  m_ballSprite.setPosition(m_ballSprite.getPosition() + m_ballVelocity * m_elapsed.asSeconds());
+  if (ballPosition.y < ballSize.y / 2.f) {
+    m_ballVelocity.y *= -1.f;
+    m_ballSprite.setPosition(ballPosition.x, ballSize.y / 2.f);
+    m_ballSound.play();
+  }
 }
 
 void Game::render() {
-  // ================= DEBUG =================
-  float x1 = m_paddleLeftSprite.getPosition().x + getSpriteSize(m_paddleLeftSprite).x / 2.f;
-  float y1 = m_paddleLeftSprite.getPosition().y - getSpriteSize(m_paddleLeftSprite).y / 2.f;
-  float x2 = x1;
-  float y2 = m_paddleLeftSprite.getPosition().y + getSpriteSize(m_paddleLeftSprite).y / 2.f;
+  sf::CircleShape p1{3.f};
+  sf::CircleShape p2{3.f};
 
-  sf::Vertex leftPaddleSurface[] = {sf::Vertex(sf::Vector2f(x1, y1), sf::Color::Red),
-                                    sf::Vertex(sf::Vector2f(x2, y2), sf::Color::Red)};
+  p1.setFillColor(sf::Color::Red);
+  p2.setFillColor(sf::Color::Red);
 
-  float x3 = m_paddleRightSprite.getPosition().x - getSpriteSize(m_paddleRightSprite).x / 2.f;
-  float y3 = m_paddleRightSprite.getPosition().y - getSpriteSize(m_paddleRightSprite).y / 2.f;
-  float x4 = x3;
-  float y4 = m_paddleRightSprite.getPosition().y + getSpriteSize(m_paddleRightSprite).y / 2.f;
-
-  sf::Vertex rightPaddleSurface[] = {sf::Vertex(sf::Vector2f(x3, y3), sf::Color::Red),
-                                     sf::Vertex(sf::Vector2f(x4, y4), sf::Color::Red)};
-
-  sf::Vector2f v1{x1 - x2, y1 - y2};
-  float dV1 = sqrtf(v1.x * v1.x + v1.y * v1.y);
-  v1 /= dV1;
-  sf::Vector2f n1{-v1.y, v1.x};
-
-  sf::Vector2f v2{x4 - x3, y4 - y3};
-  float dV2 = sqrtf(v2.x * v2.x + v2.y * v2.y);
-  v2 /= dV2;
-  sf::Vector2f n2{-v2.y, v2.x};
-
-  auto lPos = m_paddleLeftSprite.getPosition();
-  lPos.x = x2;
-
-  sf::Vertex leftNormal[] = {sf::Vertex(lPos, sf::Color::Blue),
-                             sf::Vertex(lPos + n1 * 25.f, sf::Color::Blue)};
-
-  auto rPos = m_paddleRightSprite.getPosition();
-  rPos.x = x4;
-
-  sf::Vertex rightNormal[] = {sf::Vertex(rPos, sf::Color::Blue),
-                              sf::Vertex(rPos + n2 * 25.f, sf::Color::Blue)};
-
-  // ================= DEBUG =================
+  p1.setPosition(getClosestPointOnPaddle(m_paddleLeftSprite, m_ballSprite.getPosition()));
+  p2.setPosition(getClosestPointOnPaddle(m_paddleRightSprite, m_ballSprite.getPosition()));
 
   m_window.beginDraw();
 
@@ -150,16 +136,8 @@ void Game::render() {
   m_window.draw(m_paddleRightSprite);
   m_window.draw(m_ballSprite);
 
-  m_window.draw(leftPaddleSurface, 2, sf::Lines);
-  m_window.draw(rightPaddleSurface, 2, sf::Lines);
-
-  // ================= DEBUG =================
-  m_window.draw(leftNormal, 2, sf::Lines);
-  m_window.draw(rightNormal, 2, sf::Lines);
-  // ================= DEBUG =================
-
-  // m_window.draw(normalLeft);
-  // m_window.draw(normalRight);
+  m_window.draw(p1);
+  m_window.draw(p2);
 
   m_window.endDraw();
 }
@@ -207,4 +185,46 @@ sf::Vector2f Game::getSpriteOrigin(const sf::Texture &texture) {
 
   return {static_cast<float>(textureSize.x) / 2.f,
           static_cast<float>(textureSize.y) / 2.f};
+}
+
+void Game::displayPoints() {
+  if (!m_window.isDone()) {
+    m_window.setTitle("Pong: " + std::to_string(m_leftPoints) + " - " + std::to_string(m_rightPoints));
+  }
+}
+
+void Game::leftScores() {
+  m_leftPoints++;
+  displayPoints();
+  resetGame(Turn::Left);
+}
+
+void Game::rightScores() {
+  m_rightPoints++;
+  displayPoints();
+  resetGame(Turn::Right);
+}
+
+void Game::resetGame(const Turn turn) {
+  const auto ballSize = getSpriteSize(m_ballSprite);
+
+  if (turn == Turn::Left) {
+    auto paddlePosition = m_paddleLeftSprite.getPosition();
+    auto paddleSize = getSpriteSize(m_paddleLeftSprite);
+    m_ballSprite.setPosition(paddlePosition.x + ballSize.x / 2.f + paddleSize.x / 2.f, paddlePosition.y);
+  } else if (turn == Turn::Right) {
+    auto paddlePosition = m_paddleRightSprite.getPosition();
+    auto paddleSize = getSpriteSize(m_paddleRightSprite);
+    m_ballSprite.setPosition(paddlePosition.x - ballSize.x / 2.f - paddleSize.x / 2.f, paddlePosition.y);
+  }
+}
+
+sf::Vector2f Game::getClosestPointOnPaddle(const sf::Sprite &paddle, const sf::Vector2f &point) {
+  auto position = paddle.getPosition();
+  auto size = getSpriteSize(paddle);
+
+  float closestX = std::max(position.x - size.x / 2.f, std::min(point.x, position.x + size.x / 2.f));
+  float closestY = std::max(position.y - size.y / 2.f, std::min(point.y, position.y + size.y / 2.f));
+
+  return {closestX, closestY};
 }
