@@ -11,7 +11,7 @@ Game::Game()
       !m_paddleLeftTexture.loadFromFile("../assets/paddle_left.png") ||
       !m_paddleRightTexture.loadFromFile("../assets/paddle_right.png") ||
       !m_dividerTexture.loadFromFile("../assets/divider.png")) {
-    std::cout << "Failed to load textures" << std::endl;
+    throw std::runtime_error("Failed to load textures");
   }
 
   m_ballTexture.setSmooth(true);
@@ -43,6 +43,16 @@ Game::Game()
   auto dividerRatio = WINDOW_HEIGHT / static_cast<float>(m_dividerTexture.getSize().y);
   m_dividerSprite.setScale(dividerRatio, dividerRatio);
   m_dividerSprite.setPosition(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f);
+
+  if (!m_ballWallSoundBuffer.loadFromFile("../assets/ball_wall.mp3") ||
+      !m_leftPaddleSoundBuffer.loadFromFile("../assets/paddle_left.mp3") ||
+      !m_rightPaddleSoundBuffer.loadFromFile("../assets/paddle_right.mp3")) {
+    throw std::runtime_error("Failed to load sounds");
+  }
+
+  m_ballSound.setBuffer(m_ballWallSoundBuffer);
+  m_leftPaddleSound.setBuffer(m_leftPaddleSoundBuffer);
+  m_rightPaddleSound.setBuffer(m_rightPaddleSoundBuffer);
 }
 
 void Game::update() {
@@ -79,11 +89,13 @@ void Game::moveBall() {
   if (ballPosition.x > WINDOW_WIDTH - ballSize.x / 2.f ||
       ballPosition.x < ballSize.x / 2.f) {
     m_ballVelocity.x *= -1.f;
+    m_ballSound.play();
   }
 
   if (ballPosition.y > WINDOW_HEIGHT - ballSize.y / 2.f ||
       ballPosition.y < ballSize.y / 2.f) {
     m_ballVelocity.y *= -1.f;
+    m_ballSound.play();
   }
 
   m_ballSprite.setPosition(m_ballSprite.getPosition() + m_ballVelocity * m_elapsed.asSeconds());

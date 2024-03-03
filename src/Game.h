@@ -1,7 +1,7 @@
 #pragma once
 
+#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
 
 #include "Window.h"
 
@@ -42,6 +42,14 @@ private:
 
   sf::Clock m_clock;
   sf::Time m_elapsed;
+
+  sf::SoundBuffer m_ballWallSoundBuffer;
+  sf::SoundBuffer m_leftPaddleSoundBuffer;
+  sf::SoundBuffer m_rightPaddleSoundBuffer;
+
+  sf::Sound m_ballSound;
+  sf::Sound m_leftPaddleSound;
+  sf::Sound m_rightPaddleSound;
 
   static constexpr float FRAME_TIME{1.0f / 60.f};
   static constexpr float WINDOW_WIDTH{1024.f};
