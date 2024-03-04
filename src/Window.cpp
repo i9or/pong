@@ -40,8 +40,7 @@ void Window::update() {
 }
 
 void Window::beginDraw() {
-//  m_window.clear(sf::Color::White);
-  m_window.clear(sf::Color(0x444444ff)); // TODO: remove before merge
+   m_window.clear(sf::Color::White);
 }
 
 void Window::endDraw() {
@@ -52,6 +51,14 @@ bool Window::isDone() const {
   return m_isDone;
 }
 
-void Window::draw(sf::Drawable &drawable) {
+void Window::draw(const sf::Drawable &drawable) {
   m_window.draw(drawable);
+}
+
+void Window::draw(const sf::Vertex *vertices, const std::size_t vertexCount, const sf::PrimitiveType type) {
+  m_window.draw(vertices, vertexCount, type);
+}
+
+void Window::setTitle(const std::string &newTitle) {
+  m_window.setTitle(newTitle);
 }
