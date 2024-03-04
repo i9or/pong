@@ -63,6 +63,7 @@ private:
   void resetGame(Turn turn);
 
   static sf::Vector2f getClosestPointOnPaddle(const sf::Sprite &paddle, const sf::Vector2f &point);
+  bool checkCollisionAndResolve(const sf::Sprite &paddle);
 
   static constexpr float FRAME_TIME{1.0f / 60.f};
   static constexpr float WINDOW_WIDTH{1366.f};

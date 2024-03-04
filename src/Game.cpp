@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Game.h"
+#include "Utils.h"
 
 Game::Game()
     : m_window("Pong", sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT)),
@@ -30,8 +31,8 @@ Game::Game()
 
   m_paddleLeftSprite.setTexture(m_paddleLeftTexture);
   m_paddleLeftSprite.setOrigin(getSpriteOrigin(m_paddleLeftTexture));
-  auto leftPaddScaleFactor = paddleHeight / static_cast<float>(m_paddleLeftTexture.getSize().y);
-  m_paddleLeftSprite.setScale(leftPaddScaleFactor, leftPaddScaleFactor);
+  auto leftPaddleScaleFactor = paddleHeight / static_cast<float>(m_paddleLeftTexture.getSize().y);
+  m_paddleLeftSprite.setScale(leftPaddleScaleFactor, leftPaddleScaleFactor);
   m_paddleLeftSprite.setPosition(getSpriteSize(m_paddleLeftSprite).x / 2.f + PADDLE_OFFSET, WINDOW_HEIGHT / 2.f);
 
   m_paddleRightSprite.setTexture(m_paddleRightTexture);
@@ -89,21 +90,23 @@ void Game::movePaddle(sf::Sprite &paddle, float direction) {
 void Game::moveBall() {
   m_ballSprite.setPosition(m_ballSprite.getPosition() + m_ballVelocity * m_elapsed.asSeconds());
 
+  if (checkCollisionAndResolve(m_paddleLeftSprite)) {
+    m_leftPaddleSound.play();
+  }
+
+  if (checkCollisionAndResolve(m_paddleRightSprite)) {
+    m_rightPaddleSound.play();
+  }
+
   const auto ballSize = getSpriteSize(m_ballSprite);
   const auto ballPosition = m_ballSprite.getPosition();
 
   if (ballPosition.x > WINDOW_WIDTH + ballSize.x) {
-    // pointToTheLeft();
-    m_ballVelocity.x *= -1.f;
-    m_ballSprite.setPosition(WINDOW_WIDTH + ballSize.x, ballPosition.y);
-    m_ballSound.play();
+    leftScores();
   }
 
   if (ballPosition.x < -ballSize.x) {
-    // pointToTheRight();
-    m_ballVelocity.x *= -1.f;
-    m_ballSprite.setPosition(-ballSize.x, ballPosition.y);
-    m_ballSound.play();
+    rightScores();
   }
 
   if (ballPosition.y > WINDOW_HEIGHT - ballSize.y / 2.f) {
@@ -120,24 +123,12 @@ void Game::moveBall() {
 }
 
 void Game::render() {
-  sf::CircleShape p1{3.f};
-  sf::CircleShape p2{3.f};
-
-  p1.setFillColor(sf::Color::Red);
-  p2.setFillColor(sf::Color::Red);
-
-  p1.setPosition(getClosestPointOnPaddle(m_paddleLeftSprite, m_ballSprite.getPosition()));
-  p2.setPosition(getClosestPointOnPaddle(m_paddleRightSprite, m_ballSprite.getPosition()));
-
   m_window.beginDraw();
 
   m_window.draw(m_dividerSprite);
   m_window.draw(m_paddleLeftSprite);
   m_window.draw(m_paddleRightSprite);
   m_window.draw(m_ballSprite);
-
-  m_window.draw(p1);
-  m_window.draw(p2);
 
   m_window.endDraw();
 }
@@ -179,7 +170,7 @@ sf::Vector2f Game::getSpriteSize(const sf::Sprite &sprite) {
 
 /// Resolves new origin of the sprite, should be called before applying transformations
 /// @param texture sprite texture to find it's size before transformations
-/// @return origin posisition which is the center of the texture
+/// @return origin position which is the center of the texture
 sf::Vector2f Game::getSpriteOrigin(const sf::Texture &texture) {
   const auto textureSize = texture.getSize();
 
@@ -227,4 +218,36 @@ sf::Vector2f Game::getClosestPointOnPaddle(const sf::Sprite &paddle, const sf::V
   float closestY = std::max(position.y - size.y / 2.f, std::min(point.y, position.y + size.y / 2.f));
 
   return {closestX, closestY};
+}
+
+bool Game::checkCollisionAndResolve(const sf::Sprite &paddle) {
+  auto ballPosition = m_ballSprite.getPosition();
+  auto ballRadius = getSpriteSize(m_ballSprite).x / 2.f;
+  auto paddlePosition = paddle.getPosition();
+  auto paddleSize = getSpriteSize(paddle);
+  auto closestPoint = getClosestPointOnPaddle(paddle, ballPosition);
+  float distance = Utils::distance(ballPosition, closestPoint);
+
+  if (distance < ballRadius) {
+    float collisionDepthX = (paddleSize.x / 2.f + ballRadius) - std::abs(ballPosition.x - paddlePosition.x);
+    float collisionDepthY = (paddleSize.y / 2.f + ballRadius) - std::abs(ballPosition.y - paddlePosition.y);
+
+    sf::Vector2f normal;
+
+    if (collisionDepthX < collisionDepthY) {
+      auto isBallOnTheLeft = ballPosition.x < paddlePosition.x;
+      normal = {isBallOnTheLeft ? -1.f : 1.f, 0.f};
+      m_ballSprite.move(isBallOnTheLeft ? -collisionDepthX : collisionDepthX, 0.f);
+    } else {
+      auto isBallOnTheTop = ballPosition.y < paddlePosition.y;
+      normal = {0.f, isBallOnTheTop ? -1.f : 1.f};
+      m_ballSprite.move(0.f, isBallOnTheTop ? -collisionDepthY : collisionDepthY);
+    }
+
+    m_ballVelocity = Utils::reflect(m_ballVelocity, normal);
+
+    return true;
+  }
+
+  return false; // no collision
 }
