@@ -7,4 +7,5 @@ struct Utils {
   static float length(const sf::Vector2f &a);
   static float distance(const sf::Vector2f &a, const sf::Vector2f &b);
   static sf::Vector2f reflect(const sf::Vector2f &a, const sf::Vector2f &normal);
+  static sf::Vector2f normalize(const sf::Vector2f &a);
 };

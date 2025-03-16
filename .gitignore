@@ -38,3 +38,7 @@ cmake-build-release
 # Binary folder
 bin/*
 !bin/.gitkeep
+
+# Visual Studio
+.vs/
+out/
