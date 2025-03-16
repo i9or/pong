@@ -2,6 +2,8 @@
 
 #include <SFML/System.hpp>
 
+const float PI = 3.14159f;
+
 struct Utils {
   static float dot(const sf::Vector2f &a, const sf::Vector2f &b);
   static float length(const sf::Vector2f &a);

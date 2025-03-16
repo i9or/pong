@@ -14,7 +14,8 @@ Window::~Window() {
 
 void Window::create(const std::string &title, const sf::Vector2u &size) {
   m_isDone = false;
-  m_window.create({size.x, size.y}, title, sf::Style::Close);
+  sf::VideoMode videoMode{{size.x, size.y}};
+  m_window.create(videoMode, title, sf::Style::Close);
 }
 
 void Window::destroy() {
@@ -22,14 +23,12 @@ void Window::destroy() {
 }
 
 void Window::update() {
-  sf::Event event{};
-
-  while (m_window.pollEvent(event)) {
-    if (event.type == sf::Event::Closed) {
+  while (const std::optional event = m_window.pollEvent()) {
+    if (event->is<sf::Event::Closed>()) {
       m_isDone = true;
-    } else if (event.type == sf::Event::KeyPressed) {
-      switch (event.key.code) {
-      case sf::Keyboard::Escape:
+    } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+      switch (keyPressed->scancode) {
+      case sf::Keyboard::Scancode::Escape:
         m_isDone = true;
         break;
       default:
@@ -40,7 +39,7 @@ void Window::update() {
 }
 
 void Window::beginDraw() {
-   m_window.clear(sf::Color::White);
+  m_window.clear(sf::Color::White);
 }
 
 void Window::endDraw() {
