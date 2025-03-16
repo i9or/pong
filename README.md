@@ -1,16 +1,16 @@
 # Pong
 
-Self-explanatory, I guess.
+Clone of the classic Pong game with simple AI written in modern C++17 and SFML3.
 
 ## Setup
 
 Clone the repository
 
 ```sh
-git clone --recursive https://github.com/i9or/pong.git
+git clone https://github.com/i9or/pong.git
 ```
 
-and open it in any C++ IDE with CMake support. I use CLion, by the way.
+and open it in any C++ IDE with CMake support.
 
 ## Run
 

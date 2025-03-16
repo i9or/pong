@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <random>
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -23,6 +24,7 @@ public:
 
 private:
   void moveBall();
+  void processAI(float dt);
   static void movePaddle(sf::Sprite *paddle, float direction);
 
   Window m_window;
@@ -67,9 +69,16 @@ private:
   static sf::Vector2f getClosestPointOnPaddle(const sf::Sprite *paddle, const sf::Vector2f &point);
   bool checkCollisionAndResolve(const sf::Sprite *paddle);
 
+  // AI-related stuff
+  std::random_device m_randomDevice;
+  std::mt19937 m_randomGenerator;
+  std::uniform_int_distribution<int> m_mistakeChanceDistribution;
+  std::uniform_int_distribution<int> m_ballOffsetDistribution;
+
   static constexpr float FRAME_TIME{1.0f / 60.f};
   static constexpr float WINDOW_WIDTH{1366.f};
   static constexpr float WINDOW_HEIGHT{768.f};
   static constexpr float PADDLE_VELOCITY{15.f};
   static constexpr float PADDLE_OFFSET{35.f};
+  static constexpr float BALL_SPEED{800.f};
 };

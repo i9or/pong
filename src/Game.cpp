@@ -5,11 +5,18 @@
 
 Game::Game()
     : m_window("Pong", sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT)),
-      m_ballVelocity({-400.f, 400.f}),
+      m_ballVelocity({0.f, 0.f}),
       m_paddleLeftMoveDirection(0.f),
       m_paddleRightMoveDirection(0.f),
       m_leftPoints(0),
-      m_rightPoints(0) {
+      m_rightPoints(0),
+      m_randomGenerator(m_randomDevice()),
+      m_mistakeChanceDistribution(0, 99),
+      m_ballOffsetDistribution(-70, 70) {
+  sf::Vector2f ballInitialDirection{-1.f, 1.f};
+  ballInitialDirection = Utils::normalize(ballInitialDirection);
+  m_ballVelocity = ballInitialDirection * BALL_SPEED;
+
   if (!m_ballTexture.loadFromFile("../assets/ball.png") ||
       !m_paddleLeftTexture.loadFromFile("../assets/paddle_left.png") ||
       !m_paddleRightTexture.loadFromFile("../assets/paddle_right.png") ||
@@ -65,11 +72,63 @@ void Game::update() {
 
   if (m_elapsed.asSeconds() >= FRAME_TIME) {
     movePaddle(m_paddleLeftSprite.get(), m_paddleLeftMoveDirection);
-    movePaddle(m_paddleRightSprite.get(), m_paddleRightMoveDirection);
+    processAI(m_elapsed.asSeconds());
     moveBall();
 
     m_elapsed -= sf::seconds(FRAME_TIME);
   }
+}
+
+void Game::processAI(float dt) {
+  auto ballPosition = m_ballSprite->getPosition();
+  auto paddlePosition = m_paddleRightSprite->getPosition();
+
+  auto isBallMovingTowardPaddle = m_ballVelocity.x > 0.f &&
+                                  ballPosition.x > WINDOW_WIDTH / 2.f;
+
+  static auto isMakingMistake = false;
+  static auto isLastMovedTowardPaddle = false;
+  static auto lastMoveDirection = 0.f;
+
+  if (isBallMovingTowardPaddle && !isLastMovedTowardPaddle) {
+    isMakingMistake = m_mistakeChanceDistribution(m_randomGenerator) < 45;
+  }
+
+  isLastMovedTowardPaddle = isBallMovingTowardPaddle;
+
+  if (!isBallMovingTowardPaddle) {
+    isMakingMistake = false;
+  }
+
+  float targetY = WINDOW_HEIGHT / 2.f;
+
+  if (isBallMovingTowardPaddle) {
+    if (isMakingMistake) {
+      auto ballSize = getSpriteSize(m_ballSprite.get()).y;
+      targetY = ballPosition.y + ballSize * 2.5f;
+
+      if (targetY > WINDOW_HEIGHT - ballSize) {
+        targetY = ballPosition.y - ballSize * 2.5f;
+      }
+    } else {
+      targetY = ballPosition.y;
+    }
+  }
+
+  float distanceToTarget = targetY - paddlePosition.y;
+
+  float targetMoveDirection = 0.f;
+  if (distanceToTarget < -15.f) {
+    targetMoveDirection = -1.f;
+  } else if (distanceToTarget > 15.f) {
+    targetMoveDirection = 1.f;
+  }
+
+  float paddleMoveDirection = lastMoveDirection +
+                              (targetMoveDirection - lastMoveDirection) * 0.2f;
+  lastMoveDirection = paddleMoveDirection;
+
+  movePaddle(m_paddleRightSprite.get(), paddleMoveDirection);
 }
 
 void Game::movePaddle(sf::Sprite *paddle, float direction) {
@@ -138,20 +197,12 @@ void Game::restartClock() {
 }
 
 void Game::handleInput() {
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W)) {
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up)) {
     m_paddleLeftMoveDirection = -1.f;
-  } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S)) {
+  } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down)) {
     m_paddleLeftMoveDirection = 1.f;
   } else {
     m_paddleLeftMoveDirection = 0.f;
-  }
-
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::O)) {
-    m_paddleRightMoveDirection = -1.f;
-  } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::L)) {
-    m_paddleRightMoveDirection = 1.f;
-  } else {
-    m_paddleRightMoveDirection = 0.f;
   }
 }
 
@@ -232,21 +283,28 @@ bool Game::checkCollisionAndResolve(const sf::Sprite *paddle) {
     float collisionDepthX = (paddleSize.x / 2.f + ballRadius) - std::abs(ballPosition.x - paddlePosition.x);
     float collisionDepthY = (paddleSize.y / 2.f + ballRadius) - std::abs(ballPosition.y - paddlePosition.y);
 
-    sf::Vector2f normal;
-
     if (collisionDepthX < collisionDepthY) {
       auto isBallOnTheLeft = ballPosition.x < paddlePosition.x;
-      normal = {isBallOnTheLeft ? -1.f : 1.f, 0.f};
+      // Push the ball away from the paddle
       m_ballSprite->move({isBallOnTheLeft ? -collisionDepthX : collisionDepthX, 0.f});
+
+      float hitY = ballPosition.y - (paddlePosition.y - paddleSize.y / 2.f);
+      hitY = std::max(0.f, std::min(hitY, paddleSize.y));
+      float reflectionFactor = 3.f * (hitY / paddleSize.y - 0.5f);
+      sf::Vector2f newVelocity{isBallOnTheLeft ? -1.f : 1.f, reflectionFactor};
+
+      newVelocity = Utils::normalize(newVelocity);
+
+      m_ballVelocity = newVelocity * BALL_SPEED;
     } else {
       auto isBallOnTheTop = ballPosition.y < paddlePosition.y;
-      normal = {0.f, isBallOnTheTop ? -1.f : 1.f};
+      // Push the ball away from the paddle
       m_ballSprite->move({0.f, isBallOnTheTop ? -collisionDepthY : collisionDepthY});
+
+      m_ballVelocity = Utils::reflect(m_ballVelocity, {0.f, isBallOnTheTop ? -1.f : 1.f});
     }
 
-    m_ballVelocity = Utils::reflect(m_ballVelocity, normal);
-
-    return true;
+    return true; // collision
   }
 
   return false; // no collision

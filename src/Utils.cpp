@@ -15,3 +15,9 @@ float Utils::distance(const sf::Vector2f &a, const sf::Vector2f &b) {
 sf::Vector2f Utils::reflect(const sf::Vector2f &a, const sf::Vector2f &normal) {
   return a - normal * (2 * dot(a, normal));
 }
+
+sf::Vector2f Utils::normalize(const sf::Vector2f& a) {
+  auto len = Utils::length(a);
+
+  return a / len;
+}
